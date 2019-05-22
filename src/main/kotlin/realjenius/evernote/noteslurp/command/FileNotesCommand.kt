@@ -34,15 +34,16 @@ class FileNotesCommand : CliktCommand(name = "file-notes", help = "File notes, p
         try {
           invalidInput = false
           val input = this.context.console
-            .promptForLine("Note: '${it.title}' (created at: ${it.date.toLocalDate()} ${it.date.toLocalTime()}) with Tags: '${it.tags} - Action: (M/C/S):", false)?.toUpperCase()
+            .promptForLine("Note: '${it.title}' (created at: ${it.date.toLocalDate()} ${it.date.toLocalTime()}) with Tags: '${it.tags} - Action: (M/C/S/D):", false)?.toUpperCase()
           result = when (input) {
             "M" -> NoteChanges(true)
             "S" -> NoteChanges(false)
+            "D" -> NoteChanges(move = false, delete = true)
             "C" -> {
               val tagChanges = this.context.console.promptForLine("Tag Changes:", false)
               val tagChangeParts = parseTagChanges(tagChanges!!)
               val move = this.context.console.promptForLine("Move: (Y/N):", false)?.toUpperCase()
-              NoteChanges(move == "Y", tagChangeParts.first, tagChangeParts.second)
+              NoteChanges(move == "Y", false, tagChangeParts.first, tagChangeParts.second)
             }
             else -> {
               context.console.print("Unrecognized Input: $input. Try again.", true)

@@ -42,13 +42,20 @@ class EvernoteNoteAdjuster(service: String,
         // TODO make zone pluggable.
         val details = NoteDetails(it.title, it.guid, ZonedDateTime.ofInstant(Instant.ofEpochMilli(it.created), ZoneId.of("America/Chicago")), noteStore.getNoteTagNames(it.guid))
         val changes = callback(details)
-        if (changes.addTags.isNotEmpty() || changes.removeTags.isNotEmpty()) {
-          it.tagNames = details.tags.plus(mapTags(changes.addTags)).minus(mapTags(changes.removeTags))
+
+        if (changes.delete) {
+          noteStore.deleteNote(it.guid)
+        } else {
+          if (changes.addTags.isNotEmpty() || changes.removeTags.isNotEmpty()) {
+            it.tagNames = details.tags.plus(mapTags(changes.addTags)).minus(mapTags(changes.removeTags))
+          }
+          if (changes.move) {
+            it.notebookGuid = targetNotebook.guid
+          } else {
+            it.notebookGuid = sourceNotebook.guid
+          }
+          noteStore.updateNote(it)
         }
-        if (changes.move) {
-          it.notebookGuid = targetNotebook.guid
-        }
-        noteStore.updateNote(it)
       }
     }
   }
@@ -63,4 +70,4 @@ class EvernoteNoteAdjuster(service: String,
 
 data class NoteDetails(val title: String, val guid: String, val date: ZonedDateTime, val tags: List<String>)
 
-data class NoteChanges(val move: Boolean = true, val addTags: List<String> = emptyList(), val removeTags: List<String> = emptyList())
+data class NoteChanges(val move: Boolean = true, val delete: Boolean = false, val addTags: List<String> = emptyList(), val removeTags: List<String> = emptyList())
