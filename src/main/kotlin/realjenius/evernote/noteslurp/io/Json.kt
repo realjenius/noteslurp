@@ -9,10 +9,10 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlin.reflect.KClass
 
 private val mapper: ObjectMapper = jacksonObjectMapper()
-    .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-    .enable(SerializationFeature.INDENT_OUTPUT)
-    .registerModule(Jdk8Module())
-    .registerModule(JavaTimeModule())
+  .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+  .enable(SerializationFeature.INDENT_OUTPUT)
+  .registerModule(Jdk8Module())
+  .registerModule(JavaTimeModule())
 
 fun toJson(value: Any) = mapper.writeValueAsString(value)
 

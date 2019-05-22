@@ -1,4 +1,5 @@
 @file:JvmName("NoteSlurp")
+
 package realjenius.evernote.noteslurp
 
 import com.github.ajalt.clikt.core.subcommands
@@ -12,6 +13,7 @@ fun main(args: Array<String>) {
     MainCommand().subcommands(
       AddTagsCommand(),
       ExportTagsCommand(),
+      FileNotesCommand(),
       ImportTagsCommand(),
       ListTagsCommand(),
       RemoveTagsCommand(),

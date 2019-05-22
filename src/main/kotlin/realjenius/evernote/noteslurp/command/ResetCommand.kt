@@ -5,8 +5,8 @@ import realjenius.evernote.noteslurp.Config
 import realjenius.evernote.noteslurp.io.info
 
 class ResetCommand : CliktCommand(name = "reset", help = "Remove all configuration settings") {
-    override fun run() {
-        Config.delete(context.configDir())
-        info("Configuration deleted.")
-    }
+  override fun run() {
+    Config.delete(context.configDir())
+    info("Configuration deleted.")
+  }
 }

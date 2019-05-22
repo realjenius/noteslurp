@@ -2,14 +2,13 @@ package realjenius.evernote.noteslurp.io
 
 import ch.qos.logback.classic.Level
 import com.github.ajalt.clikt.core.CliktCommand
-import mu.KotlinLogging
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 fun CliktCommand.info(log: String) = context.console.print(log, false)
 fun CliktCommand.error(log: String) = context.console.print(log, true)
 
-fun toggleDebug(bool: Boolean) = if(bool) enableDebug() else disableDebug()
+fun toggleDebug(bool: Boolean) = if (bool) enableDebug() else disableDebug()
 fun enableDebug() = setRootLevel(Level.DEBUG)
 fun disableDebug() = setRootLevel(Level.INFO)
 

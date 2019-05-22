@@ -7,12 +7,14 @@ import realjenius.evernote.noteslurp.LoadedFile
 import realjenius.evernote.noteslurp.reactor.debug
 import realjenius.evernote.noteslurp.reactor.elasticMono
 import realjenius.evernote.noteslurp.reactor.schedulerMap
-import java.nio.file.*
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.Path
 import java.util.stream.Stream
 
 private val logger = KotlinLogging.logger { }
 
-fun loadFiles(directory: String) : Flux<LoadedFile> {
+fun loadFiles(directory: String): Flux<LoadedFile> {
   val dirPath = loadPath(directory)
   assert(Files.isDirectory(dirPath))
   return Flux
@@ -29,14 +31,14 @@ fun loadFiles(directory: String) : Flux<LoadedFile> {
     }
 }
 
-  private fun streamDir(path: Path) : Stream<Path> =
-    Files.list(path).flatMap {
-      when {
-        Files.isDirectory(it) -> streamDir(it)
-        Files.isRegularFile(it) -> Stream.of(it)
-        else -> Stream.empty()
-      }
+private fun streamDir(path: Path): Stream<Path> =
+  Files.list(path).flatMap {
+    when {
+      Files.isDirectory(it) -> streamDir(it)
+      Files.isRegularFile(it) -> Stream.of(it)
+      else -> Stream.empty()
     }
+  }
 
 fun readFile(file: Path) = if (Files.exists(file)) Files.readAllBytes(file) else null
 
@@ -48,7 +50,7 @@ fun writeFile(file: Path, contents: ByteArray) {
 
 fun copyFile(file: Path, target: Path) = elasticMono {
   Files.createDirectories(target)
-Files.copy(file, target.resolve(file.fileName))
+  Files.copy(file, target.resolve(file.fileName))
 }
 
 fun deleteFile(file: Path) = elasticMono { Files.delete(file) }

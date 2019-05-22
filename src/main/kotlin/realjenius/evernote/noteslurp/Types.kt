@@ -18,13 +18,15 @@ data class NoteLog(val timestamp: String, val records: List<NoteLogEntry>)
 data class Config(val currentEnvironment: String?, val environments: Map<String, EnvConfig>, val tags: TagConfig) {
   val version = 1
 
-  fun tokenFor(env: String) = environments[env]?.token ?:
-    throw CliktError("Unable to find configuration for environment `$currentEnvironment`. " +
-      "Please reinitialize your configuration")
+  fun tokenFor(env: String) = environments[env]?.token ?: throw CliktError(
+    "Unable to find configuration for environment `$currentEnvironment`. " +
+        "Please reinitialize your configuration"
+  )
 
   fun hasEnvironment(env: String) = environments.containsKey(env)
 
-  fun withEnvConfig(env: String, config: EnvConfig) = copy(currentEnvironment = env, environments = this.environments.plus(env to config))
+  fun withEnvConfig(env: String, config: EnvConfig) =
+    copy(currentEnvironment = env, environments = this.environments.plus(env to config))
 
   fun withTags(tags: TagConfig) = copy(tags = tags)
 
@@ -34,7 +36,7 @@ data class Config(val currentEnvironment: String?, val environments: Map<String,
 
     fun initial() = Config(null, emptyMap(), TagConfig(false, emptyList()))
 
-    fun load(home: String) : Config = readFile(configPath(home))?.let {
+    fun load(home: String): Config = readFile(configPath(home))?.let {
       fromJson<Config>(String(it, Charsets.UTF_8))
     } ?: Config.initial()
 
