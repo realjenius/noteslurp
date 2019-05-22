@@ -33,7 +33,7 @@ class FileNotesCommand : CliktCommand(name = "file-notes", help = "File notes, p
         try {
           invalidInput = false
           val input = this.context.console
-            .promptForLine("Note: '${it.title}' with Tags: '${it.tags} - Action: (M/C/S):", false)?.toUpperCase()
+            .promptForLine("Note: '${it.title}' (created at: ${it.date.toLocalDate()} ${it.date.toLocalTime()}) with Tags: '${it.tags} - Action: (M/C/S):", false)?.toUpperCase()
           result = when (input) {
             "M" -> NoteChanges(true)
             "S" -> NoteChanges(false)
@@ -59,8 +59,8 @@ class FileNotesCommand : CliktCommand(name = "file-notes", help = "File notes, p
 
   private fun parseTagChanges(input: String) : Pair<List<String>, List<String>> {
     val tagChanges = input.split(' ')
-    val additions = tagChanges.filter { it.startsWith('+') }.map { it.substring(1) }
-    val subtractions = tagChanges.filter { it.startsWith('-') }.map { it.substring(1) }
+    val additions = tagChanges.filter { it.startsWith('+') }.map { it.substring(1) }.map { it.replace('+', ' ') }
+    val subtractions = tagChanges.filter { it.startsWith('-') }.map { it.substring(1) }.map { it.replace('+', ' ') }
     return additions to subtractions
   }
 

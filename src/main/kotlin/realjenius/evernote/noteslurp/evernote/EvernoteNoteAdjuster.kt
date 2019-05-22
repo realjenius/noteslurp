@@ -3,6 +3,10 @@ package realjenius.evernote.noteslurp.evernote
 import com.evernote.edam.notestore.NoteFilter
 import com.github.ajalt.clikt.core.CliktError
 import mu.KLogging
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
 class EvernoteNoteAdjuster(service: String,
                            token: String,
@@ -24,7 +28,6 @@ class EvernoteNoteAdjuster(service: String,
 
     logger.info { "Filing $count notes from: \n\t'${sourceNotebook.name}' (${sourceNotebook.guid}) into: \n\t'${targetNotebook.name}' (${targetNotebook.guid})" }
 
-
     var moreNotes = true
     var offset = 0
     while (moreNotes) {
@@ -33,7 +36,8 @@ class EvernoteNoteAdjuster(service: String,
       offset += notes.notes.size
 
       notes.notes.forEach {
-        val details = NoteDetails(it.title, it.guid, noteStore.getNoteTagNames(it.guid))
+        // TODO make zone pluggable.
+        val details = NoteDetails(it.title, it.guid, ZonedDateTime.ofInstant(Instant.ofEpochMilli(it.created), ZoneId.of("America/Chicago")), noteStore.getNoteTagNames(it.guid))
         val changes = callback(details)
         if (changes.addTags.isNotEmpty() || changes.removeTags.isNotEmpty()) {
           it.tagNames = details.tags.plus(changes.addTags).minus(changes.removeTags)
@@ -51,6 +55,6 @@ class EvernoteNoteAdjuster(service: String,
   companion object : KLogging()
 }
 
-data class NoteDetails(val title: String, val guid: String, val tags: List<String>)
+data class NoteDetails(val title: String, val guid: String, val date: ZonedDateTime, val tags: List<String>)
 
 data class NoteChanges(val move: Boolean = true, val addTags: List<String> = emptyList(), val removeTags: List<String> = emptyList())
