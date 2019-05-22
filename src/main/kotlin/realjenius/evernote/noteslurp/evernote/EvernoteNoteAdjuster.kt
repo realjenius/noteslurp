@@ -3,6 +3,8 @@ package realjenius.evernote.noteslurp.evernote
 import com.evernote.edam.notestore.NoteFilter
 import com.github.ajalt.clikt.core.CliktError
 import mu.KLogging
+import realjenius.evernote.noteslurp.io.info
+import java.nio.file.Paths
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
@@ -11,7 +13,8 @@ import java.time.ZonedDateTime
 class EvernoteNoteAdjuster(service: String,
                            token: String,
                            private val from: String?,
-                           private val to: String) : Evernote(service, token) {
+                           private val to: String,
+                           private val tags: List<TagStrategy>) : Evernote(service, token) {
 
   fun walkNotes(callback: (NoteDetails) -> NoteChanges) {
     logger.info { "Default Notebook: ${noteStore.defaultNotebook.name}" }
@@ -40,7 +43,7 @@ class EvernoteNoteAdjuster(service: String,
         val details = NoteDetails(it.title, it.guid, ZonedDateTime.ofInstant(Instant.ofEpochMilli(it.created), ZoneId.of("America/Chicago")), noteStore.getNoteTagNames(it.guid))
         val changes = callback(details)
         if (changes.addTags.isNotEmpty() || changes.removeTags.isNotEmpty()) {
-          it.tagNames = details.tags.plus(changes.addTags).minus(changes.removeTags)
+          it.tagNames = details.tags.plus(mapTags(changes.addTags)).minus(mapTags(changes.removeTags))
         }
         if (changes.move) {
           it.notebookGuid = targetNotebook.guid
@@ -52,6 +55,9 @@ class EvernoteNoteAdjuster(service: String,
 
   private fun findNotebook(name: String) = noteStore.listNotebooks().firstOrNull { it.name.equals(name, true) }
 
+  private fun mapTags(tagList: Iterable<String>) = tagList.flatMap { tag ->
+    tags.flatMap { it.findTags(Paths.get("/"), Paths.get("/$tag")) }
+  }.toList()
   companion object : KLogging()
 }
 

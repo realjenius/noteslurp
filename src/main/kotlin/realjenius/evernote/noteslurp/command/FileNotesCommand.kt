@@ -9,6 +9,7 @@ import mu.KLogging
 import realjenius.evernote.noteslurp.evernote.Evernote
 import realjenius.evernote.noteslurp.evernote.EvernoteNoteAdjuster
 import realjenius.evernote.noteslurp.evernote.NoteChanges
+import realjenius.evernote.noteslurp.evernote.TagStrategy
 import java.lang.RuntimeException
 
 class FileNotesCommand : CliktCommand(name = "file-notes", help = "File notes, potentially adjusting tags as you go") {
@@ -25,7 +26,7 @@ class FileNotesCommand : CliktCommand(name = "file-notes", help = "File notes, p
 
     logger.debug { "Verifying Evernote Connection to '$env'" }
 
-    val adjuster = EvernoteNoteAdjuster(env, config.tokenFor(env), source, dest)
+    val adjuster = EvernoteNoteAdjuster(env, config.tokenFor(env), source, dest, TagStrategy.forConfig(config.tags))
     adjuster.walkNotes {
       var invalidInput = true
       lateinit var result: NoteChanges
