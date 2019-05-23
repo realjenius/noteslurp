@@ -3,11 +3,9 @@ package realjenius.evernote.noteslurp.evernote
 import com.evernote.edam.notestore.NoteFilter
 import com.github.ajalt.clikt.core.CliktError
 import mu.KLogging
-import realjenius.evernote.noteslurp.io.info
 import java.nio.file.Paths
 import java.time.Instant
 import java.time.ZoneId
-import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 class EvernoteNoteAdjuster(service: String,
@@ -40,34 +38,40 @@ class EvernoteNoteAdjuster(service: String,
 
       notes.notes.forEach {
         // TODO make zone pluggable.
-        val details = NoteDetails(it.title, it.guid, ZonedDateTime.ofInstant(Instant.ofEpochMilli(it.created), ZoneId.of("America/Chicago")), noteStore.getNoteTagNames(it.guid))
+        val details = NoteDetails(it.title, it.guid, ZonedDateTime.ofInstant(Instant.ofEpochMilli(it.created), ZoneId.of("America/Chicago")), noteStore.getNoteTagNames(it.guid).toSet())
         val changes = callback(details)
 
-        if (changes.delete) {
-          noteStore.deleteNote(it.guid)
-        } else {
-          if (changes.addTags.isNotEmpty() || changes.removeTags.isNotEmpty()) {
-            it.tagNames = details.tags.plus(mapTags(changes.addTags)).minus(mapTags(changes.removeTags))
-          }
-          if (changes.move) {
-            it.notebookGuid = targetNotebook.guid
-          } else {
-            it.notebookGuid = sourceNotebook.guid
-          }
+        if (changes.delete) noteStore.deleteNote(it.guid)
+        else if (changes.isChanged()) {
+          it.notebookGuid = if (changes.move) targetNotebook.guid else sourceNotebook.guid
+          if (changes.titleChanged) it.title = details.title
+          if (changes.tagsChanged) it.tagNames = details.tags.toList()
           noteStore.updateNote(it)
         }
       }
     }
   }
 
+  fun updateTags(note: NoteDetails, addTags: List<String> = emptyList(), removeTags: List<String> = emptyList(), keepIfUnmapped: Boolean) : Boolean {
+    return if (addTags.isNotEmpty() || removeTags.isNotEmpty()) {
+      val oldTags = note.tags
+      note.tags = note.tags.plus(mapTags(addTags, keepIfUnmapped)).minus(mapTags(removeTags, keepIfUnmapped))
+      oldTags != note.tags
+    } else false
+  }
+
   private fun findNotebook(name: String) = noteStore.listNotebooks().firstOrNull { it.name.equals(name, true) }
 
-  private fun mapTags(tagList: Iterable<String>) = tagList.flatMap { tag ->
+  private fun mapTags(tagList: Iterable<String>, keepIfUnmapped: Boolean) = tagList.flatMap { tag ->
     tags.flatMap { it.findTags(Paths.get("/"), Paths.get("/$tag")) }
+      .ifEmpty { if(keepIfUnmapped) listOf(tag) else emptyList() }
   }.toList()
+
   companion object : KLogging()
 }
 
-data class NoteDetails(val title: String, val guid: String, val date: ZonedDateTime, val tags: List<String>)
+data class NoteDetails(var title: String, val guid: String, val date: ZonedDateTime, var tags: Set<String>)
 
-data class NoteChanges(val move: Boolean = true, val delete: Boolean = false, val addTags: List<String> = emptyList(), val removeTags: List<String> = emptyList())
+data class NoteChanges(var move: Boolean = false, var delete: Boolean = false, var titleChanged: Boolean = false, var tagsChanged: Boolean = false) {
+  fun isChanged() = move || titleChanged || tagsChanged
+}

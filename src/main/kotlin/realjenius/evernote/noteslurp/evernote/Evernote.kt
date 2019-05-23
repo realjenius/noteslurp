@@ -4,6 +4,7 @@ import com.evernote.auth.EvernoteAuth
 import com.evernote.auth.EvernoteService
 import com.evernote.clients.ClientFactory
 import com.evernote.clients.NoteStoreClient
+import com.evernote.edam.notestore.SyncState
 import com.evernote.edam.type.Data
 import com.evernote.edam.type.Note
 import com.evernote.edam.type.Resource
