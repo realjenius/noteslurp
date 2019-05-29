@@ -30,12 +30,25 @@ that can upload files to Evernote automatically (and when triggered by a CRON-li
 To further optimize the import process, NoteSlurp can also automatically tag based on a keyword configuration that can
 look for patterns in folder names and file paths to automatically select tag names.
 
+## Installation
+
+Generally on a Unix style system it's best to put the NoteSlurp.jar into your home directory or similar, and then
+create an alias or shell for executing it. For example:
+
+```bash
+~ ❯❯❯ cat ~/bin/noteslurp
+!#/bin/bash
+java -jar /home/realjenius/noteslurp.jar $@
+```
+
+This allows simply typing `noteslurp` in your command line.
+
 ## Usage
 
 Basic usage instructions can be found on the command-line:
 
 ```
-~: java -jar noteslurp.jar
+~ ❯❯❯ noteslurp
 Usage: noteslurp [OPTIONS] COMMAND [ARGS]...
 
 Options:
@@ -47,6 +60,7 @@ Options:
 Commands:
   add-tags     Add auto-tagging configurations
   export-tags  Export the current tag definition
+  file-notes   File notes, potentially adjusting tags as you go
   import-tags  Import a tags export file
   list-tags    List the current tag configurations
   remove-tags  Remove one to many tag configurations
@@ -55,7 +69,6 @@ Commands:
   set-env      Initialize Evernote authentication for an environment
   test-tags    Prints the tags that are computed off the given name for the
                current configuration
-
 ```
 
 A first time run will typically involve this series of steps:
@@ -202,3 +215,63 @@ This is an example tag configuration that can be imported as a starting point. T
 
 The resulting notes created in Evernote currently have a title to match the document, and have an empty body with only a
 clickable link to the document itself. This is not currently customizable.
+
+### Automating
+
+Generally, once you have set up Noteslurp, a CRONtab entry is the best way to use it automatically. For example, from
+my local environment I use this CRONtab entry to execute it every 5 minutes and sync notes from a directory in
+my home folder:
+
+```bash
+*/5 * * * * java -jar /home/realjenius/noteslurp.jar \
+  --config-dir /home/realjenius/.noteslurp \
+  run \
+  --from /home/realjenius/Documents/sync
+```
+
+This will copy documents from the `~/Documents/sync` dir every 5 minutes into Evernote, using the configuration
+previously specified and all of the other previous tag configuration.
+
+### Filing Notes (Experimental)
+
+The other major component of NoteSlurp is the ability to easily file notes. This is still in relatively early
+development, but is used by me regularly. To use this interactive command line tool, start with the `file-notes` command:
+
+```
+noteslurp file-notes --dest Cabinet
+```
+
+If you don't specify a "source" notebook, NoteSlurp assumes your "Default" notebook (usually the inbox or similar).
+
+Once started the logs should look like this:
+
+```bash
+22:09:21.800 [main] INFO  r.e.n.evernote.EvernoteNoteAdjuster - Filing 32 notes from:
+	'@Inbox' (31d7c3b3-0f2c-460f-90d1-bd920117dafd) into:
+	'Cabinet' (a88e0cb4-4fe2-4323-ba04-00d68f957abc)
+Note: 'bestbuy_credit_statement_05_2019.PDF' (created at: 2019-05-25 12:15:11) with Tags: '[2019-05] - Action: (M/S/D/C/T/Q):m
+Note: 'anotherdocument-05-2019.pdf' (created at: 2019-05-25 12:15:10) with Tags: '[Kindergarten , 2019-05, 3rd Grade] - Action: (M/S/D/C/T/Q):m
+Note: 'yetanother-05-2019.PDF' (created at: 2019-05-25 12:15:09) with Tags: '[Insurance, 2019-05] - Action: (M/S/D/C/T/Q):m
+Note: 'something-house-related_05_2019.PDF' (created at: 2019-05-25 12:15:08) with Tags: '[Home, 2019-05] - Action: (M/S/D/C/T/Q):m
+```
+
+The actions are:
+
+Action | Description
+--- | ---
+M | Move to the destination, aka "looks good!"
+S | Skip this document - need to review in Evernote
+D | Delete this document - it was a mistake upload
+Q | Quit note filing, I'm bored or tired
+T | Change the title of the note - The new title will be rescanned for tag keywords!
+C | Manually change the tags of the document
+
+Of the above, the only one with esoteric syntax it 'C'. When changing tags at the prompt you can add and remove tags using
+the pre-built keywords, and you use `+|-` prefixes to add or remove. For example, to add the "Insurance" tag and the "2019-04" tag
+but remove the "2019-03" tag it might look like this:
+
+```bash
+Tag Changes:+insur +2019-04 -2019-03
+```
+
+(Assuming insur is a keyword tag for Insurance)

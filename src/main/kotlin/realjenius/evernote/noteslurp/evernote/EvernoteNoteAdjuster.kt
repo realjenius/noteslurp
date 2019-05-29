@@ -43,7 +43,10 @@ class EvernoteNoteAdjuster(service: String,
 
         if (changes.delete) noteStore.deleteNote(it.guid)
         else if (changes.isChanged()) {
-          it.notebookGuid = if (changes.move) targetNotebook.guid else sourceNotebook.guid
+          it.notebookGuid = if (changes.move) {
+            offset--
+            targetNotebook.guid
+          } else sourceNotebook.guid
           if (changes.titleChanged) it.title = details.title
           if (changes.tagsChanged) it.tagNames = details.tags.toList()
           noteStore.updateNote(it)
