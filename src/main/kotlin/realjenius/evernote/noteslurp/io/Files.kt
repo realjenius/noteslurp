@@ -10,6 +10,7 @@ import realjenius.evernote.noteslurp.reactor.schedulerMap
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.attribute.FileAttribute
 import java.util.stream.Stream
 
 private val logger = KotlinLogging.logger { }
@@ -43,13 +44,17 @@ private fun streamDir(path: Path): Stream<Path> =
 fun readFile(file: Path) = if (Files.exists(file)) Files.readAllBytes(file) else null
 
 fun writeFile(file: Path, contents: ByteArray) {
-  Files.createDirectories(file.parent)
+  if (!Files.exists(file.parent)) {
+    Files.createDirectories(file.parent)
+  }
   if (!Files.exists(file)) Files.createFile(file)
   Files.write(file, contents)
 }
 
 fun copyFile(file: Path, target: Path) = elasticMono {
-  Files.createDirectories(target)
+  if (!Files.exists(target)) {
+    Files.createDirectories(target)
+  }
   Files.copy(file, target.resolve(file.fileName))
 }
 

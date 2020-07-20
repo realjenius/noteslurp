@@ -16,7 +16,7 @@ class FileNotesCommand : CliktCommand(name = "file-notes", help = "File notes, p
     .choice(*Evernote.serviceKeys())
 
   override fun run() {
-    val config = context.loadConfig()
+    val config = currentContext.loadConfig()
     val env = environment ?: config.currentEnvironment
     ?: throw CliktError("Either an environment must be provided, or a current environment must be set in the configuration")
     if (!config.hasEnvironment(env)) throw CliktError("The environment `$env` is not set. Run `noteslurp set-env` to configure this environment.")
@@ -37,7 +37,7 @@ class FileNotesCommand : CliktCommand(name = "file-notes", help = "File notes, p
       var input: String? = null
       val change = NoteChanges()
       while(input == null || input !in "MSD") {
-        input = this.context.console
+        input = this.currentContext.console
             .promptForLine("Note: '${it.title}' (created at: ${it.date.toLocalDate()} ${it.date.toLocalTime()}) with Tags: '${it.tags} - Action: (M/S/D/C/T/Q):", false)?.toUpperCase()
 
         when (input) {
@@ -46,13 +46,13 @@ class FileNotesCommand : CliktCommand(name = "file-notes", help = "File notes, p
           "S" -> change.move = false
           "D" -> change.delete = true
           "C" -> {
-            val tagChanges = this.context.console.promptForLine("Tag Changes:", false) ?: ""
+            val tagChanges = this.currentContext.console.promptForLine("Tag Changes:", false) ?: ""
             change.tagsChanged = parseTagChanges(it, tagChanges, adjuster) || change.tagsChanged
           }
           "T" -> {
-            val title = this.context.console.promptForLine("New Title:", false) ?: ""
+            val title = this.currentContext.console.promptForLine("New Title:", false) ?: ""
             if(title.isBlank()) {
-              context.console.print("Unrecognized Input: $input. Try again.", true)
+              currentContext.console.print("Unrecognized Input: $input. Try again.", true)
               input = null
             }
             change.titleChanged = true
@@ -60,7 +60,7 @@ class FileNotesCommand : CliktCommand(name = "file-notes", help = "File notes, p
             change.tagsChanged = adjuster.updateTags(it, listOf(it.title), emptyList(), false) || change.tagsChanged
           }
           else -> {
-            context.console.print("Unrecognized Input: $input. Try again.", true)
+            currentContext.console.print("Unrecognized Input: $input. Try again.", true)
           }
         }
       }

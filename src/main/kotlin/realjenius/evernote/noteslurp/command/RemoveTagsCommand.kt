@@ -11,14 +11,14 @@ class RemoveTagsCommand : CliktCommand(name = "remove-tags", help = "Remove one 
   val tagIndex by option(help = "An index for the tag to remove from the `list-tags` command").int().multiple()
 
   override fun run() {
-    val config = context.loadConfig()
+    val config = currentContext.loadConfig()
     val removalList = tagIndex.filter {
       if (it >= config.tags.keywords.size || it < 0) {
         error("Index $tagIndex is invalid. Skipping.\n")
         false
       } else true
     }.filter {
-      val toRemove = context.console.promptForLine(
+      val toRemove = currentContext.console.promptForLine(
         "Are you sure you wish to remove '${config.tags.keywords[it].mapping}' [Y/N]: ",
         false
       )
@@ -28,7 +28,7 @@ class RemoveTagsCommand : CliktCommand(name = "remove-tags", help = "Remove one 
     }
 
     val newList = config.tags.keywords.filterIndexed { idx, _ -> !removalList.contains(idx) }
-    config.withTags(config.tags.withKeywords(newList)).save(context.configDir())
+    config.withTags(config.tags.withKeywords(newList)).save(currentContext.configDir())
     info("Removed ${removalList.size} from configuration\n----\n\n")
     listTags()
   }

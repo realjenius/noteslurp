@@ -20,7 +20,7 @@ class SetEnvironmentCommand :
   )
 
   override fun run() {
-    context.loadConfig().withEnvConfig(environment, EnvConfig(devToken)).save(context.configDir())
+    currentContext.loadConfig().withEnvConfig(environment, EnvConfig(devToken)).save(currentContext.configDir())
     info("\nConfiguration created successfully for environment $environment.")
   }
 }

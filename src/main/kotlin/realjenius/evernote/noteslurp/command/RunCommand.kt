@@ -34,7 +34,7 @@ class RunCommand : CliktCommand(name = "run", help = "Slurp notes into Evernote"
   override fun run() {
     val start = System.nanoTime()
     val destination = "$to/${System.currentTimeMillis()}"
-    val config = context.loadConfig()
+    val config = currentContext.loadConfig()
     val env = environment ?: config.currentEnvironment
     ?: throw CliktError("Either an environment must be provided, or a current environment must be set in the configuration")
     if (!config.hasEnvironment(env)) throw CliktError("The environment `$env` is not set. Run `noteslurp set-env` to configure this environment.")

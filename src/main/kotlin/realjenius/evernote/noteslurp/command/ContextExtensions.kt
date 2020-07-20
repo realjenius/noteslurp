@@ -16,7 +16,7 @@ fun Context.configDir(): String = when {
 }
 
 fun CliktCommand.listTags() {
-  val config = context.loadConfig()
+  val config = currentContext.loadConfig()
   info("Tag List:\n")
   info("-----\n")
   info("Folder Tag Mapping: ${config.tags.folderTags}\n")

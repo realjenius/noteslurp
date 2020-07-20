@@ -236,7 +236,7 @@ previously specified and all of the other previous tag configuration.
 
 The other major component of NoteSlurp is the ability to easily file notes. This is still in relatively early
 development, but is used by me regularly. To use this interactive command line tool, start with the `file-notes` command:
-
+n
 ```
 noteslurp file-notes --dest Cabinet
 ```

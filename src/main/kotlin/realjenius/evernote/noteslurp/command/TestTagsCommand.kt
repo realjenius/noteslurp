@@ -13,7 +13,7 @@ class TestTagsCommand : CliktCommand(
 ) {
   val tag by option(help = "The tag name to test").multiple()
   override fun run() {
-    val strategies = TagStrategy.forConfig(context.loadConfig().tags)
+    val strategies = TagStrategy.forConfig(currentContext.loadConfig().tags)
     tag.forEach { tag ->
       info("$tag --> ${strategies.flatMap { it.findTags(Paths.get("/"), Paths.get("/$tag")) }}\n")
     }

@@ -16,7 +16,7 @@ class ImportTagsCommand : CliktCommand(name = "import-tags", help = "Import a ta
   val replace by option(help = "If set to true, the import will replace the current tag set").flag(default = false)
 
   override fun run() {
-    val config = context.loadConfig()
+    val config = currentContext.loadConfig()
     var tags: TagConfig = fromJson(
       String(
         readFile(loadPath(from)) ?: throw CliktError("Unable to find $from to import"), Charsets.UTF_8
@@ -25,7 +25,7 @@ class ImportTagsCommand : CliktCommand(name = "import-tags", help = "Import a ta
 
     val tagCount = tags.keywords.size
     if (!replace) tags = config.tags.withFolderSetting(tags.folderTags).plusKeywords(tags.keywords)
-    config.withTags(tags).save(context.configDir())
+    config.withTags(tags).save(currentContext.configDir())
     info("\n$tagCount keywords imported, ${if (replace) "replacing existing tags" else "added to existing tags"}.\n----\n\n")
     listTags()
 

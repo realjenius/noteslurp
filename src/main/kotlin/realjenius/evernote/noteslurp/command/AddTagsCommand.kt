@@ -15,14 +15,14 @@ class AddTagsCommand : CliktCommand(name = "add-tags", help = "Add auto-tagging 
   val folder by option(help = "Enable sub-folder name to tag mapping").flag(default = false)
 
   override fun run() {
-    context.loadConfig().let {
+    currentContext.loadConfig().let {
       it.withTags(
         (regexKeyword.map { kw -> KeywordTag(kw.first, kw.second, KeywordType.Regex) } +
             keyword.map { kw -> KeywordTag(kw.first, kw.second, KeywordType.Text) })
           .fold(it.tags) { acc, keyword -> acc.withKeyword(keyword) }
           .withFolderSetting(folder)
       )
-    }.save(context.configDir())
+    }.save(currentContext.configDir())
 
     info("\nTags added to configuration\n----\n\n")
     listTags()
