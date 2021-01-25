@@ -1,8 +1,11 @@
 package realjenius.evernote.noteslurp.evernote
 
 import com.evernote.edam.notestore.NoteFilter
+import com.evernote.edam.type.Note
 import com.github.ajalt.clikt.core.CliktError
 import mu.KLogging
+import realjenius.evernote.noteslurp.evernote.Evernote.findNotebook
+import realjenius.evernote.noteslurp.evernote.Evernote.tags
 import java.nio.file.Paths
 import java.time.Instant
 import java.time.ZoneId
@@ -11,20 +14,24 @@ import java.time.ZonedDateTime
 class EvernoteNoteAdjuster(service: String,
                            token: String,
                            private val from: String?,
-                           private val to: String,
-                           private val tags: List<TagStrategy>) : Evernote(service, token) {
+                           to: String,
+                           private val tags: List<TagStrategy>) {
 
-  fun walkNotes(callback: (NoteDetails) -> NoteChanges) {
+  private val noteStore = Evernote.connect(service, token)
+
+  private val sourceNotebook = from
+    ?.let { noteStore.findNotebook(it) ?: throw CliktError("Source notebook '$from' could not be found'")} ?:
+  noteStore.defaultNotebook
+
+  private val targetNotebook = noteStore.findNotebook(to) ?: throw CliktError("Target notebook '$to' could not be found.")
+
+  val filter = NoteFilter().apply {
+    notebookGuid = sourceNotebook.guid
+  }
+
+  fun walkNotes(preview: Boolean = false, callback: (NoteDetails) -> NoteChanges) {
     logger.info { "Default Notebook: ${noteStore.defaultNotebook.name}" }
 
-    val sourceNotebook = from
-      ?.let { findNotebook(it) ?: throw CliktError("Source notebook '$from' could not be found'")} ?:
-        noteStore.defaultNotebook
-
-    val targetNotebook = findNotebook(to) ?: throw CliktError("Target notebook '$to' could not be found.")
-
-    val filter = NoteFilter()
-    filter.notebookGuid = sourceNotebook.guid
     val count = noteStore.findNoteCounts(filter, false).notebookCounts[sourceNotebook.guid]
 
     logger.info { "Filing $count notes from: \n\t'${sourceNotebook.name}' (${sourceNotebook.guid}) into: \n\t'${targetNotebook.name}' (${targetNotebook.guid})" }
@@ -38,7 +45,7 @@ class EvernoteNoteAdjuster(service: String,
 
       notes.notes.forEach {
         // TODO make zone pluggable.
-        val details = NoteDetails(it.title, it.guid, ZonedDateTime.ofInstant(Instant.ofEpochMilli(it.created), ZoneId.of("America/Chicago")), noteStore.getNoteTagNames(it.guid).toSet())
+        val details = NoteDetails(it, if (preview) noteStore.getNoteContent(it.guid) else null, noteStore.tags(it))
         val changes = callback(details)
 
         if (changes.delete) noteStore.deleteNote(it.guid)
@@ -63,7 +70,6 @@ class EvernoteNoteAdjuster(service: String,
     } else false
   }
 
-  private fun findNotebook(name: String) = noteStore.listNotebooks().firstOrNull { it.name.equals(name, true) }
 
   private fun mapTags(tagList: Iterable<String>, keepIfUnmapped: Boolean) = tagList.flatMap { tag ->
     tags.flatMap { it.findTags(Paths.get("/"), Paths.get("/$tag")) }
@@ -73,8 +79,3 @@ class EvernoteNoteAdjuster(service: String,
   companion object : KLogging()
 }
 
-data class NoteDetails(var title: String, val guid: String, val date: ZonedDateTime, var tags: Set<String>)
-
-data class NoteChanges(var move: Boolean = false, var delete: Boolean = false, var titleChanged: Boolean = false, var tagsChanged: Boolean = false) {
-  fun isChanged() = move || titleChanged || tagsChanged
-}

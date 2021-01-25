@@ -23,8 +23,9 @@ class EvernoteNoteCreator(service: String,
                           private val syncDir: Path,
                           private val fakeStore: Boolean,
                           private val tags: List<TagStrategy>,
-                          maxParallelism: Int = 1) : Evernote(service, token) {
+                          maxParallelism: Int = 1) {
 
+  private val noteStore = Evernote.connect(service, token)
   private val scheduler = Schedulers.newParallel(SCHEDULER_NAME, maxParallelism)
 
 
@@ -66,7 +67,7 @@ class EvernoteNoteCreator(service: String,
   companion object : KLogging() {
     private val NOTE_TEMPLATE = Evernote::class.java.classLoader
       .getResource("document_template.xml")
-      .readText(Charsets.UTF_8)
+      ?.readText(Charsets.UTF_8) ?: error("Unable to find document_template.xml")
   }
 
 }

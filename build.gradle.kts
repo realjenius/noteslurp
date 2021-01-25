@@ -4,12 +4,13 @@ group = "realjenius"
 version = "1.1-SNAPSHOT"
 
 plugins {
-    kotlin("jvm") version "1.3.72"
+    kotlin("jvm") version "1.4.20"
     id("com.github.johnrengelman.shadow").version("6.0.0")
 }
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 tasks.withType<Jar> {
@@ -42,6 +43,8 @@ dependencies {
     implementation("com.evernote:evernote-api:1.25.1")
     api(kotlin("stdlib-jdk8"))
     api(kotlin("reflect"))
+
+    implementation("io.javalin:javalin:3.12.0")
 }
 
 tasks {

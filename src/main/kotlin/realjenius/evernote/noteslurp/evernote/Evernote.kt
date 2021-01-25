@@ -4,29 +4,15 @@ import com.evernote.auth.EvernoteAuth
 import com.evernote.auth.EvernoteService
 import com.evernote.clients.ClientFactory
 import com.evernote.clients.NoteStoreClient
-import com.evernote.edam.notestore.SyncState
-import com.evernote.edam.type.Data
 import com.evernote.edam.type.Note
-import com.evernote.edam.type.Resource
-import com.evernote.edam.type.ResourceAttributes
 import com.evernote.edam.userstore.Constants
-import mu.KLogging
-import reactor.core.publisher.Mono
-import reactor.core.scheduler.Schedulers
-import realjenius.evernote.noteslurp.LoadedFile
-import realjenius.evernote.noteslurp.SavedNote
-import realjenius.evernote.noteslurp.io.byteArrayToHex
-import realjenius.evernote.noteslurp.io.md5
-import realjenius.evernote.noteslurp.reactor.debug
-import realjenius.evernote.noteslurp.reactor.schedulerMap
-import java.nio.file.Path
-import java.util.*
 
-private const val CLIENT_NAME = "NoteSlurp"
 
-abstract class Evernote(service: String, token: String) {
-  protected val noteStore: NoteStoreClient
-  init {
+
+object Evernote {
+  private const val CLIENT_NAME = "NoteSlurp"
+
+  fun connect(service: String, token: String) : NoteStoreClient {
     assert(validServiceKey(service))
     val auth = EvernoteAuth(EvernoteService.valueOf(service), token)
     val clients = ClientFactory(auth)
@@ -38,11 +24,14 @@ abstract class Evernote(service: String, token: String) {
     ) {
       throw RuntimeException("Minimum Client Version not met!")
     }
-    noteStore = clients.createNoteStoreClient()
+    return clients.createNoteStoreClient()
   }
 
-  companion object {
-    fun serviceKeys() = EvernoteService.values().map { it.name }.toTypedArray()
-    fun validServiceKey(key: String) = EvernoteService.values().any { it.name == key }
-  }
+  fun NoteStoreClient.tags(note: Note) = this.getNoteTagNames(note.guid).toSet()
+
+  fun NoteStoreClient.findNotebook(name: String) = listNotebooks().firstOrNull { it.name.equals(name, true) }
+
+
+  fun serviceKeys() = EvernoteService.values().map { it.name }.toTypedArray()
+  private fun validServiceKey(key: String) = EvernoteService.values().any { it.name == key }
 }
