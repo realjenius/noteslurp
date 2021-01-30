@@ -54,7 +54,20 @@ private class RegexMatcher(search: String, private val target: String) : Keyword
 }
 
 private class TextMatcher(private val search: String, private val target: String) : KeywordMatcher {
-  override fun findTag(input: String) = if (input.contains(search, true)) target else null
+  override fun findTag(input: String) : String? {
+    val at = input.indexOf(string = search, ignoreCase = true)
+    return if (at >= 0) {
+      val startsClean = at == 0 || isAllowedBoundary(input[at - 1])
+      val endsClean = at + search.length == input.length || isAllowedBoundary(input[at + search.length + 1])
+      if (startsClean && endsClean) target else null
+    } else null
+  }
+
+  private fun isAllowedBoundary(char: Char) = !BOUNDARY_REGEX.matches("$char")
+
+  companion object {
+    private val BOUNDARY_REGEX = Regex("[a-zA-Z0-9]")
+  }
 }
 
 class FolderStrategy(private val keywords: KeywordStrategy?) : TagStrategy {
