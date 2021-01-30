@@ -72,7 +72,7 @@ class EvernoteNoteAdjuster(service: String,
 
 
   private fun mapTags(tagList: Iterable<String>, keepIfUnmapped: Boolean) = tagList.flatMap { tag ->
-    tags.flatMap { it.findTags(Paths.get("/"), Paths.get("/$tag")) }
+    tags.flatMap { it.findTags(TagContext(textContent = tag)) }
       .ifEmpty { if(keepIfUnmapped) listOf(tag) else emptyList() }
   }.toList()
 

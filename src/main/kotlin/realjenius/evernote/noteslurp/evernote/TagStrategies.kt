@@ -6,8 +6,10 @@ import realjenius.evernote.noteslurp.TagConfig
 import java.nio.file.Path
 import java.nio.file.Paths
 
+data class TagContext(val rootDir: Path = Path.of("/"), val filePath: Path = Path.of("/"), val textContent: String = "")
+
 interface TagStrategy {
-  fun findTags(rootDir: Path, filePath: Path): Set<String>
+  fun findTags(ctx: TagContext): Set<String>
 
   companion object {
     fun forConfig(config: TagConfig): List<TagStrategy> {
@@ -26,8 +28,8 @@ class KeywordStrategy(keywords: List<KeywordTag>) : TagStrategy {
     else TextMatcher(it.mapping, it.target)
   }
 
-  override fun findTags(rootDir: Path, filePath: Path): Set<String> = matchers
-    .map { it.findTag(filePath.fileName.toString()) }
+  override fun findTags(ctx: TagContext): Set<String> = matchers
+    .map { it.findTag(ctx.textContent) }
     .filter { it != null }
     .filterNotNull().toSet()
 }
@@ -56,9 +58,9 @@ private class TextMatcher(private val search: String, private val target: String
 }
 
 class FolderStrategy(private val keywords: KeywordStrategy?) : TagStrategy {
-  override fun findTags(rootDir: Path, filePath: Path) =
-    findTagNext(rootDir, filePath).let {
-      if (keywords != null) it.flatMap { tag -> keywords.findTags(Paths.get("/"), Paths.get("/$tag")) }
+  override fun findTags(ctx: TagContext) =
+    findTagNext(ctx.rootDir, ctx.filePath).let {
+      if (keywords != null) it.flatMap { tag -> keywords.findTags(ctx.copy(textContent = tag)) }
       else it
     }.toSet()
 

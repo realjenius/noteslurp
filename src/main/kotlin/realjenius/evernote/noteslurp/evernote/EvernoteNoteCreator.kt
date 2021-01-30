@@ -42,7 +42,7 @@ class EvernoteNoteCreator(service: String,
 
   private fun fileAsNote(file: LoadedFile) = Note().apply {
     title = file.name
-    tags.flatMap { it.findTags(syncDir, file.path) }
+    tags.flatMap { it.findTags(TagContext(syncDir, file.path)) }
       .forEach { this.addToTagNames(it) }
 
     val resource = Resource().apply {

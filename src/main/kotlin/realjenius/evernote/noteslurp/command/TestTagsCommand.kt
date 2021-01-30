@@ -3,6 +3,7 @@ package realjenius.evernote.noteslurp.command
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
+import realjenius.evernote.noteslurp.evernote.TagContext
 import realjenius.evernote.noteslurp.evernote.TagStrategy
 import realjenius.evernote.noteslurp.io.info
 import java.nio.file.Paths
@@ -15,7 +16,7 @@ class TestTagsCommand : CliktCommand(
   override fun run() {
     val strategies = TagStrategy.forConfig(currentContext.loadConfig().tags)
     tag.forEach { tag ->
-      info("$tag --> ${strategies.flatMap { it.findTags(Paths.get("/"), Paths.get("/$tag")) }}\n")
+      info("$tag --> ${strategies.flatMap { it.findTags(TagContext(textContent = tag)) }}\n")
     }
   }
 }

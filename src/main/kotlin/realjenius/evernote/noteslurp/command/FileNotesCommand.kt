@@ -58,6 +58,10 @@ class FileNotesCommand : CliktCommand(name = "file-notes", help = "File notes, p
           "M" -> { change.move = true; break }
           "S" -> { change.move = false; break }
           "D" -> { change.delete = true; break }
+          "G" -> {
+            if (it.content != null)
+              change.tagsChanged = adjuster.updateTags(it, listOf(it.content), emptyList(), false) || change.tagsChanged
+          }
           "C" -> {
             change.tagsChanged = parseTagChanges(it, TermUi.prompt(green("Tag Changes")) ?: "", adjuster) || change.tagsChanged
           }
