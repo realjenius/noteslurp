@@ -58,7 +58,7 @@ private class TextMatcher(private val search: String, private val target: String
     val at = input.indexOf(string = search, ignoreCase = true)
     return if (at >= 0) {
       val startsClean = at == 0 || isAllowedBoundary(input[at - 1])
-      val endsClean = at + search.length == input.length || isAllowedBoundary(input[at + search.length + 1])
+      val endsClean = at + search.length >= input.length || isAllowedBoundary(input[at + search.length])
       if (startsClean && endsClean) target else null
     } else null
   }
