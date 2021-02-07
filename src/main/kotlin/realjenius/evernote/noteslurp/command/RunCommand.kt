@@ -43,7 +43,7 @@ class RunCommand : CliktCommand(name = "run", help = "Slurp notes into Evernote"
 
     info("Processing files in `$from` and transmitting to $env\n\n")
 
-    val evernote = EvernoteNoteCreator(env, config.tokenFor(env), loadPath(from), dryRun, TagStrategy.forConfig(config.tags))
+    val evernote = EvernoteNoteCreator(env, config.tokenFor(currentContext.configDir(), env), loadPath(from), dryRun, TagStrategy.forConfig(config.tags))
     val result = loadFiles(from)
       .flatMap(evernote::createNote)
       .delayUntil {

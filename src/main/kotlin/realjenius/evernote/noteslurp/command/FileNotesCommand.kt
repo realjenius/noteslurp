@@ -31,7 +31,7 @@ class FileNotesCommand : CliktCommand(name = "file-notes", help = "File notes, p
 
     logger.debug { "Verifying Evernote Connection to '$env'" }
 
-    val adjuster = EvernoteNoteAdjuster(env, config.tokenFor(env), source, dest, TagStrategy.forConfig(config.tags))
+    val adjuster = EvernoteNoteAdjuster(env, config.tokenFor(currentContext.configDir(), env), source, dest, TagStrategy.forConfig(config.tags))
     try {
       walk(adjuster)
     } catch (ex: Quit) {
@@ -67,13 +67,11 @@ class FileNotesCommand : CliktCommand(name = "file-notes", help = "File notes, p
           }
           "T" -> {
             val title = this.currentContext.console.promptForLine("New Title:", false) ?: ""
-            if(title.isBlank()) {
-              error(input)
-            } else {
+            if(!title.isBlank()) {
               change.titleChanged = true
               it.title = title
-              change.tagsChanged = adjuster.updateTags(it, listOf(it.title), emptyList(), false) || change.tagsChanged
             }
+            change.tagsChanged = adjuster.updateTags(it, listOf(it.title), emptyList(), false) || change.tagsChanged
           }
           else -> {
             if (input?.startsWith("CM ") == true) {

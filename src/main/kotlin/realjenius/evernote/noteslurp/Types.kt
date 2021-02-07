@@ -2,8 +2,16 @@ package realjenius.evernote.noteslurp
 
 import com.github.ajalt.clikt.core.CliktError
 import realjenius.evernote.noteslurp.io.*
+import java.nio.file.Files
+import java.nio.file.OpenOption
 import java.nio.file.Path
+import java.nio.file.StandardOpenOption
+import java.security.KeyFactory
+import java.security.spec.PKCS8EncodedKeySpec
+import java.security.spec.X509EncodedKeySpec
 import java.time.Instant
+import java.util.*
+import javax.crypto.Cipher
 
 class LoadedFile(val name: String, val mime: String, val path: Path, val data: ByteArray)
 
@@ -18,7 +26,7 @@ data class NoteLog(val timestamp: String, val records: List<NoteLogEntry>)
 data class Config(val currentEnvironment: String?, val environments: Map<String, EnvConfig>, val tags: TagConfig) {
   val version = 1
 
-  fun tokenFor(env: String) = environments[env]?.token ?: throw CliktError(
+  fun tokenFor(configDir: String, env: String) = environments[env]?.extractToken(configDir) ?: throw CliktError(
     "Unable to find configuration for environment `$currentEnvironment`. " +
         "Please reinitialize your configuration"
   )
@@ -48,7 +56,21 @@ data class Config(val currentEnvironment: String?, val environments: Map<String,
   }
 }
 
-data class EnvConfig(val token: String, val created: Instant = Instant.now())
+data class EnvConfig(val token: String, val tokenType: TokenType = TokenType.Plain, val created: Instant = Instant.now()) {
+  fun extractToken(configDir: String) : String =
+    when(tokenType) {
+      TokenType.Plain -> token
+      TokenType.Isolated -> Files.readString(Path.of(configDir, token))
+    }
+
+  companion object {
+    fun storeToken(path: Path, value: String) {
+      Files.writeString(path, value, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
+    }
+  }
+}
+
+enum class TokenType { Plain, Isolated }
 
 data class TagConfig(val folderTags: Boolean, val keywords: List<KeywordTag>) {
   val version = 1

@@ -45,6 +45,8 @@ dependencies {
     api(kotlin("reflect"))
 
     implementation("io.javalin:javalin:3.12.0")
+    implementation("at.favre.lib:bcrypt:0.9.0")
+
 }
 
 tasks {
