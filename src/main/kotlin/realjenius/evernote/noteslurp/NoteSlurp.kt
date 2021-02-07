@@ -21,7 +21,10 @@ fun main(args: Array<String>) {
       ResetCommand(),
       RunCommand(),
       SetEnvironmentCommand(),
-      TestTagsCommand()
+      TestTagsCommand(),
+      SwapTagsCommand(),
+      DeleteTagCommand(),
+      ReparentTagCommand()
     ).main(args)
   } catch (ex: Throwable) {
     System.err.println("Fatal: An exception has occurred: ${ex::class.simpleName}: ${ex.message}\n\tRun with '--debug' to learn more.")

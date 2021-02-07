@@ -4,6 +4,7 @@ import com.evernote.edam.notestore.NoteFilter
 import com.evernote.edam.type.Note
 import com.github.ajalt.clikt.core.CliktError
 import mu.KLogging
+import realjenius.evernote.noteslurp.evernote.Evernote.allNotes
 import realjenius.evernote.noteslurp.evernote.Evernote.findNotebook
 import realjenius.evernote.noteslurp.evernote.Evernote.tags
 import java.nio.file.Paths
@@ -36,36 +37,26 @@ class EvernoteNoteAdjuster(service: String,
 
     logger.info { "Filing $count notes from: \n\t'${sourceNotebook.name}' (${sourceNotebook.guid}) into: \n\t'${targetNotebook.name}' (${targetNotebook.guid})" }
 
-    var moreNotes = true
-    var offset = 0
-    while (moreNotes) {
-      val notes = noteStore.findNotes(filter, offset, 10)
-      if (notes.notes.size < 10) moreNotes = false
-      offset += notes.notes.size
-
-      notes.notes.forEach {
-        // TODO make zone pluggable.
-        val details = NoteDetails(it, if (preview) noteStore.getNoteContent(it.guid) else null, noteStore.tags(it))
-        val changes = callback(details)
-
-        if (changes.delete) noteStore.deleteNote(it.guid)
-        else if (changes.isChanged()) {
-          it.notebookGuid = if (changes.move) {
-            offset--
-            targetNotebook.guid
-          } else sourceNotebook.guid
-          if (changes.titleChanged) it.title = details.title
-          if (changes.tagsChanged) it.tagNames = details.tags.toList()
-          noteStore.updateNote(it)
-        }
+    noteStore.allNotes(filter, preview) { note, details ->
+      // TODO make zone pluggable.
+      val changes = callback(details)
+      if (changes.delete) noteStore.deleteNote(note.guid)
+      else if (changes.isChanged()) {
+        note.notebookGuid = if (changes.move) {
+          targetNotebook.guid
+        } else sourceNotebook.guid
+        if (changes.titleChanged) note.title = details.title
+        if (changes.tagsChanged) note.tagNames = details.tags.toList()
+        noteStore.updateNote(note)
       }
+      changes.move || changes.delete
     }
   }
 
   fun updateTags(note: NoteDetails, addTags: List<String> = emptyList(), removeTags: List<String> = emptyList(), keepIfUnmapped: Boolean) : Boolean {
     return if (addTags.isNotEmpty() || removeTags.isNotEmpty()) {
       val oldTags = note.tags
-      note.tags = note.tags.plus(mapTags(addTags, keepIfUnmapped)).minus(mapTags(removeTags, keepIfUnmapped))
+      note.tags = note.tags + mapTags(addTags, keepIfUnmapped) - mapTags(removeTags, keepIfUnmapped)
       oldTags != note.tags
     } else false
   }
