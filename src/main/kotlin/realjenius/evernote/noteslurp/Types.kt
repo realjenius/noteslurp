@@ -60,7 +60,7 @@ data class EnvConfig(val token: String, val tokenType: TokenType = TokenType.Pla
   fun extractToken(configDir: String) : String =
     when(tokenType) {
       TokenType.Plain -> token
-      TokenType.Isolated -> Files.readString(Path.of(configDir, token))
+      TokenType.Isolated -> Files.readString(Path.of(configDir, token)).trim()
     }
 
   companion object {

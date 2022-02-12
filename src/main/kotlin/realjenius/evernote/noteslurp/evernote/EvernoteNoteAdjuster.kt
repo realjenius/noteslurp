@@ -1,16 +1,10 @@
 package realjenius.evernote.noteslurp.evernote
 
 import com.evernote.edam.notestore.NoteFilter
-import com.evernote.edam.type.Note
 import com.github.ajalt.clikt.core.CliktError
 import mu.KLogging
 import realjenius.evernote.noteslurp.evernote.Evernote.allNotes
 import realjenius.evernote.noteslurp.evernote.Evernote.findNotebook
-import realjenius.evernote.noteslurp.evernote.Evernote.tags
-import java.nio.file.Paths
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZonedDateTime
 
 class EvernoteNoteAdjuster(service: String,
                            token: String,
@@ -69,4 +63,3 @@ class EvernoteNoteAdjuster(service: String,
 
   companion object : KLogging()
 }
-
