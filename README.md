@@ -1,5 +1,9 @@
 # NoteSlurp - Paperless Evernote CLI
 
+## Important Note
+
+**This project is no longer being maintained. Given the recent price increases and [corporate trouble with Evernote](https://arstechnica.com/gadgets/2023/07/evernote-the-memory-app-people-forgot-about-lays-off-entire-us-staff/), I have moved to a self-hosted [Paperless-NGX](https://docs.paperless-ngx.com/) solution for my paperless filing. The workflow is quite similar to what Noteslurp offered, but without all of the Evernote-centric challenges and workarounds, and with a UI built around proper filing and categorization of your documents. I highly recommend it!** 
+
 ## Overview
 
 NoteSlurp is a solution for importing various scanned and downloaded documents into Evernote efficiently, while automatically
